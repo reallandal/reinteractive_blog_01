@@ -1,0 +1,26 @@
+FROM ruby:3.1.2
+
+# Install dependencies
+RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
+
+# Set an environment variable to store the application's directory
+ENV APP_HOME /myapp
+
+# Create the application's directory and set it as the working directory
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+
+# Copy the Gemfile and Gemfile.lock into the working directory
+COPY Gemfile Gemfile.lock $APP_HOME/
+
+# Install the gems
+RUN bundle install
+
+# Copy the application code into the working directory
+COPY . $APP_HOME
+
+# Expose the default Rails server port
+EXPOSE 3000
+
+# Run the Rails server when the container starts
+CMD ["rails", "server", "-b", "0.0.0.0"]

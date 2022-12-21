@@ -1,0 +1,54 @@
+version: '3'
+services:
+  db:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: myapp
+      POSTGRES_PASSWORD: mypass
+    ports:
+      - 5432:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - myapp_network
+
+  redis:
+    image: redis
+    volumes:
+      - redisdata:/data
+
+  rabbitmq:
+    image: rabbitmq:3.8.9-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - myapp_network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/myapp
+      - myapp_data:/myapp/data
+    ports:
+      - "3000:3000"
+    networks:
+      - myapp_network
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+volumes:
+  db_data:
+  myapp_data:
+  rabbitmq_data:
+  redisdata:
+ 
+networks:
+  myapp_network:
